@@ -26,11 +26,32 @@ async function run() {
     await client.connect();
     const tasksCollections = client.db("task-management").collection("tasks");
 
+    //task edit
+    app.post("/task/edit", async (req, res) => {
+      const id = req.query._id;
+      const task = req.query.task;
+
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          task: task,
+        },
+      };
+
+      const result = await tasksCollections.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+
+      res.send(result);
+    });
+
+    //task complete
     app.post("/task", async (req, res) => {
       const id = req.query._id;
       const status = req.query.status;
-
-      console.log(id, status);
 
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
@@ -45,7 +66,7 @@ async function run() {
         updateDoc,
         options
       );
-      console.log(result);
+
       res.send(result);
     });
 
@@ -54,7 +75,6 @@ async function run() {
 
       const tasks = await tasksCollections.find(query).toArray();
 
-      console.log(tasks);
       res.send(tasks);
     });
     app.get("/tasksComplete", async (req, res) => {
@@ -62,26 +82,16 @@ async function run() {
 
       const tasks = await tasksCollections.find(query).toArray();
 
-      console.log(tasks);
       res.send(tasks);
     });
 
-    //insert reviews
+    //insert task
     app.post("/addTask", async (req, res) => {
       const task = req.body;
-      console.log(task);
+
       const result = await tasksCollections.insertOne(task);
-      console.log(result);
       res.send(result);
     });
-
-    // // create a document to insert
-    // const doc = {
-    //   title: "Record of a Shriveled Datum",
-    //   content: "No bytes, no problem. Just insert a document, in MongoDB",
-    // };
-    // const result = await database.insertOne(doc);
-    // console.log(`A document was inserted with the _id: ${result.insertedId}`);
   } finally {
   }
 }
